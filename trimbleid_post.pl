@@ -18,7 +18,6 @@ my $authstr="Basic SEE3NG02UFBZN1NzX19zejBVTVVER2ltTVlZYTpYcFZxQmYyY1kyZ0UwVzdxe
 my $contentstr = "grant_type=authorization_code&tenantDomain=trimble.com&code=" . $code . "&redirect_uri=" . $redirurienc;
 print "contentstr=$contentstr\n";
 
-#my $posturl = $server_endpoint . "?" . $contentstr;
 my $posturl = $server_endpoint;
 print "POST $posturl\n";
 
@@ -28,9 +27,7 @@ $req->header('Content-Type' => 'application/x-www-form-urlencoded');
 $req->header('Accept' => 'application/json');
 $req->header('Cache-Control' => 'no-cache');
 $req->header('Host' => 'identity-stg.trimble.com');
-#$req->header('Content-Length' => 0);
 $req->content($contentstr);
-#$req->content(Encode::encode_utf8($contentstr));
 
 my $ua = LWP::UserAgent->new;
 my $resp = $ua->request($req);
