@@ -2,35 +2,52 @@
 use strict;
 
 use LWP::UserAgent;
+use HTTP::Request::Common;
+use Data::Dumper;
 
-my $code="83117d2688add27ec5b3a614c31c31";
-
-
-my $ua = LWP::UserAgent->new;
+my $code="641dd482f38084f36725fc835b44942";
 
 my $server_endpoint = "https://identity-stg.trimble.com/i/oauth2/token";
+print "server_endpoint=$server_endpoint\n";
 
 my $rediruri="http://localhost:8888/auth_trimbleid/oauth_after.html";
+my $redirurienc="http%3A%2F%2Flocalhost%3A8888%2Fauth_trimbleid%2Foauth_after.html";
 my $authstr="Basic SEE3NG02UFBZN1NzX19zejBVTVVER2ltTVlZYTpYcFZxQmYyY1kyZ0UwVzdxeUhZOXNPdFBOZmdh";
 
-my $req = HTTP::Request->new(POST => $server_endpoint);
+my $contentstr = "grant_type=authorization_code&tenantDomain=trimble.com&code=" . $code . "&redirect_uri=" . $redirurienc;
+print "contentstr=$contentstr\n";
+
+#my $posturl = $server_endpoint . "?" . $contentstr;
+my $posturl = $server_endpoint;
+print "POST $posturl\n";
+
+my $req = HTTP::Request->new(POST => $posturl);
 $req->header("Authorization" => $authstr);
 $req->header('Content-Type' => 'application/x-www-form-urlencoded');
 $req->header('Accept' => 'application/json');
 $req->header('Cache-Control' => 'no-cache');
+$req->header('Host' => 'identity-stg.trimble.com');
+#$req->header('Content-Length' => 0);
+$req->content($contentstr);
 
-#my $contentstr = "grant_type=authorization_code&code=" . $code . "&redirect_uri=" . $rediruri . "&tenantDomain=trimble.com";
-#print "contentstr=$contentstr";
+#POST /i/oauth2/token?grant_type=authorization_code&tenantDomain=trimble.com&code=7830dd3126d7276ba652b9a98c615820&redirect_uri=http%3A%2F%2Flocalhost%3A8888%2Fauth_trimbleid%2Foauth_after.html HTTP/1.1
+#accept: "application/json"
+#authorization: "Basic SEE3NG02UFBZN1NzX19zejBVTVVER2ltTVlZYTpYcFZxQmYyY1kyZ0UwVzdxeUhZOXNPdFBOZmdh"
+#cache-control: "no-cache"
+#content-type: "application/x-www-form-urlencoded"
+#host: "identity-stg.trimble.com"
 
-my $content = '{ "grant_type": "authorization_code", "code": $code, "redirect_uri": $rediruri, "tenantDomain": "trimble.com"}';
+#my $content = '{ "grant_type": "authorization_code", "code": $code, "redirect_uri": $rediruri, "tenantDomain": "trimble.com"}';
 #my $content = '{ "grant_type": "authorization_code" }';
-print "content=$content";
 
 # add POST data to HTTP request body
 #my $post_data = '{ "name": "Dan", "address": "NY" }';
-$req->content($content);
+#$req->content($content);
 
+my $ua = LWP::UserAgent->new;
 my $resp = $ua->request($req);
+print Dumper(\%$resp);
+#print "Response: $resp\n";
 if ($resp->is_success) {
 	my $message = $resp->decoded_content;
 	print "Received reply: $message\n";
@@ -40,10 +57,14 @@ else {
 	print "HTTP POST error message: ", $resp->message, "\n";
 }
 
+#my $response = (new LWP::UserAgent)->request(POST $server_endpoint,
+#	[ grant_type    => "authorization_code",
+#	  code          => $code,
+#	  redirect_uri  => $redirurienc,
+#	  tenantDomain  => "trimble.com" ] );
 
-#my $rediruri="http%3A%2F%2Flocalhost%3A8888%2Fauth_trimbleid%2Foauth_after.html";
+#xit -1 unless $response->is_success;
+#$_ = $response->{_content};
+#print $_;
 
-#rem curl -v -k -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Authorization: Basic %authstr%" -H "Accept: application/json" -H "Cache-Control: no-cache" "https://identity-stg.trimble.com/i/oauth2/token?grant_type=authorization_code&tenantDomain=trimble.com&code=%code%&redirect_uri=%rediruri%"
-
-#curl -k -X POST -H "Host: identity-stg.trimble.com" -H "Authorization: Basic %authstr%" -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" -H "Accept: application/json" -H "Cache-Control: no-cache" --data "grant_type=authorization_code" --data "code=%code%" --data "redirect_uri=%rediruri%" --data "tenantDomain=trimble.com" https://identity-stg.trimble.com/i/oauth2/token --trace-ascii xcurl_trace.txt
 
